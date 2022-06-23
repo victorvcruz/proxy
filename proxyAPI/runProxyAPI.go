@@ -15,6 +15,8 @@ import (
 
 func ProxyAPI(cacheClient cache.CacheClient) {
 
+	var mutex handler.QueueMutex
+
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 
 		body, err := io.ReadAll(r.Body)
@@ -25,6 +27,10 @@ func ProxyAPI(cacheClient cache.CacheClient) {
 		}
 
 		queryParms := transformMapInQueryParams(r.URL.Query())
+		log.Println(r.Method)
+
+		unlock := mutex.Lock(r, body, queryParms)
+		defer unlock()
 
 		if r.Method == "GET" {
 			responseCache, err := handler.HandlerFindInCache(cacheClient, r, queryParms)
@@ -35,7 +41,7 @@ func ProxyAPI(cacheClient cache.CacheClient) {
 
 			case *json.UnmarshalTypeError:
 				responseCache, err := handler.HandlerFindInCacheArray(cacheClient, r, queryParms)
-				log.Println("array cache")
+				log.Println("Array cache")
 
 				switch e := err.(type) {
 				case *cache.CacheNotFoundError:
@@ -52,7 +58,7 @@ func ProxyAPI(cacheClient cache.CacheClient) {
 				if err := responseCache.ResponseWriter(w); err != nil {
 					log.Fatal(err)
 				}
-				fmt.Println("Cache")
+				log.Println("Cache")
 
 				return
 
@@ -64,11 +70,11 @@ func ProxyAPI(cacheClient cache.CacheClient) {
 		response, responseArray := api.RequestToAPI(cacheClient, r, body, queryParms)
 
 		if response != nil {
-			if err := response.ResponseWriter(w); err != nil {
+			if err := (*response).ResponseWriter(w); err != nil {
 				log.Fatal(err)
 			}
 		} else {
-			if err := responseArray.ResponseWriter(w); err != nil {
+			if err := (*responseArray).ResponseWriter(w); err != nil {
 				log.Fatal(err)
 			}
 		}

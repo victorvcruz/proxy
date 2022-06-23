@@ -14,7 +14,7 @@ import (
 	"time"
 )
 
-func RequestToAPI(cacheClient cache.CacheClient, r *http.Request, bodyRequest []byte, query string) (*response.ResponseAPI, *response.ResponseAPIArray) {
+func RequestToAPI(cacheClient cache.CacheClient, r *http.Request, bodyRequest []byte, query string) (**response.ResponseAPI, **response.ResponseAPIArray) {
 	client := http.Client{}
 	var bodyContent io.Reader
 
@@ -49,26 +49,36 @@ func RequestToAPI(cacheClient cache.CacheClient, r *http.Request, bodyRequest []
 
 	handler.HandlerTimeAndInsertHeaders(resp, req, start)
 
-	var mapBodyResponse map[string]interface{}
-	var mapBodyResponseArray []interface{}
-
-	if err = json.Unmarshal(bodyResponse, &mapBodyResponse); err != nil {
-
-		if err = json.Unmarshal(bodyResponse, &mapBodyResponseArray); err != nil {
+	responseForProxy, err := CreateResponseForProxy(resp, bodyResponse)
+	if err != nil {
+		responseForProxy, err := CreateResponseArrayForProxy(resp, bodyResponse)
+		if err != nil {
 			log.Fatal(err)
 		}
-		response := response.ResponseAPIArray{
-			Body:    mapBodyResponseArray,
-			Status:  resp.StatusCode,
-			Headers: resp.Header,
-		}
 
-		if req.Method == "GET" && resp.StatusCode == 200 {
-			if err := handler.HandlerInsertCacheArray(cacheClient, req, query, response); err != nil {
+		if req.Method == "GET" && resp.StatusCode >= 200 && resp.StatusCode <= 299 {
+			if err := handler.HandlerInsertCacheArray(cacheClient, req, query, responseForProxy); err != nil {
 				log.Fatal(err)
 			}
 		}
-		return nil, &response
+		return nil, &responseForProxy
+	}
+
+	if req.Method == "GET" && resp.StatusCode >= 200 && resp.StatusCode <= 299 {
+		if err := handler.HandlerInsertCache(cacheClient, req, query, responseForProxy); err != nil {
+			log.Fatal(err)
+		}
+	}
+
+	return &responseForProxy, nil
+}
+
+func CreateResponseForProxy(resp *http.Response, bodyResponse []byte) (*response.ResponseAPI, error) {
+
+	var mapBodyResponse map[string]interface{}
+
+	if err := json.Unmarshal(bodyResponse, &mapBodyResponse); err != nil {
+		return nil, err
 	}
 
 	response := response.ResponseAPI{
@@ -77,11 +87,23 @@ func RequestToAPI(cacheClient cache.CacheClient, r *http.Request, bodyRequest []
 		Headers: resp.Header,
 	}
 
-	if req.Method == "GET" && resp.StatusCode == 200 {
-		if err := handler.HandlerInsertCache(cacheClient, req, query, response); err != nil {
-			log.Fatal(err)
-		}
+	return &response, nil
+
+}
+
+func CreateResponseArrayForProxy(resp *http.Response, bodyResponse []byte) (*response.ResponseAPIArray, error) {
+
+	var mapBodyResponseArray []interface{}
+
+	if err := json.Unmarshal(bodyResponse, &mapBodyResponseArray); err != nil {
+		return nil, err
+	}
+	response := response.ResponseAPIArray{
+		Body:    mapBodyResponseArray,
+		Status:  resp.StatusCode,
+		Headers: resp.Header,
 	}
 
 	return &response, nil
+
 }
