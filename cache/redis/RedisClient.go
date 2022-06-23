@@ -1,8 +1,8 @@
 package redis
 
 import (
-	"fmt"
 	"github.com/go-redis/redis/v8"
+	"log"
 	"proxy_project/cache"
 	"time"
 )
@@ -12,8 +12,6 @@ type RedisClient struct {
 }
 
 func (r *RedisClient) ConnectToDatabase() error {
-
-	fmt.Println("Testing Golang Redis")
 
 	r.client = redis.NewClient(&redis.Options{
 		Addr:     "localhost:6379",
@@ -25,6 +23,8 @@ func (r *RedisClient) ConnectToDatabase() error {
 	if err != nil {
 		return err
 	}
+
+	log.Println("Redis Connected")
 
 	return nil
 }

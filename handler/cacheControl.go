@@ -7,7 +7,7 @@ import (
 	"proxy_project/proxyAPI/response"
 )
 
-func HandlerInsertCache(client cache.CacheClient, req *http.Request, query string, responseApi response.ResponseAPI) error {
+func HandlerInsertCache(client cache.CacheClient, req *http.Request, query string, responseApi *response.ResponseAPI) error {
 	reqID := req.Method + "-" + req.URL.Path + query + "-" + req.Header.Get("Token")
 
 	respJson, err := json.Marshal(responseApi)
@@ -23,7 +23,7 @@ func HandlerInsertCache(client cache.CacheClient, req *http.Request, query strin
 	return nil
 }
 
-func HandlerInsertCacheArray(client cache.CacheClient, req *http.Request, query string, responseApi response.ResponseAPIArray) error {
+func HandlerInsertCacheArray(client cache.CacheClient, req *http.Request, query string, responseApi *response.ResponseAPIArray) error {
 	reqID := req.Method + "-" + req.URL.Path + query + "-" + req.Header.Get("Token")
 
 	respJson, err := json.Marshal(responseApi)

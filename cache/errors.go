@@ -5,5 +5,5 @@ import "fmt"
 type CacheNotFoundError struct{}
 
 func (e *CacheNotFoundError) Error() string {
-	return fmt.Sprintf("not found")
+	return fmt.Sprintf("Not found")
 }
