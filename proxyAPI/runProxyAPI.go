@@ -13,7 +13,7 @@ import (
 	"strings"
 )
 
-func ProxyAPI(cacheClient cache.CacheClient) {
+func ProxyAPI(cacheClient cache.CacheClient, request requestAPI.RequestClient) {
 
 	var mutex handler.QueueMutex
 
@@ -33,14 +33,14 @@ func ProxyAPI(cacheClient cache.CacheClient) {
 		defer unlock()
 
 		if r.Method == "GET" {
-			responseCache, err := handler.HandlerFindInCache(cacheClient, r, queryParms)
+			responseCache, err := handler.FindInCache(cacheClient, r, queryParms)
 
 			switch e := err.(type) {
 			case *cache.CacheNotFoundError:
 				log.Println(e)
 
 			case *json.UnmarshalTypeError:
-				responseCache, err := handler.HandlerFindInCacheArray(cacheClient, r, queryParms)
+				responseCache, err := handler.FindInCacheArray(cacheClient, r, queryParms)
 				log.Println("Array cache")
 
 				switch e := err.(type) {
@@ -67,7 +67,7 @@ func ProxyAPI(cacheClient cache.CacheClient) {
 
 		log.Println("Requisition")
 
-		response, responseArray := api.RequestToAPI(cacheClient, r, body, queryParms)
+		response, responseArray := request.RequestToAPI(cacheClient, r, body, queryParms)
 
 		if response != nil {
 			if err := (*response).ResponseWriter(w); err != nil {

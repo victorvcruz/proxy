@@ -1,4 +1,4 @@
-package api
+package requestAPI
 
 import (
 	"bytes"
@@ -14,7 +14,12 @@ import (
 	"time"
 )
 
-func RequestToAPI(cacheClient cache.CacheClient, r *http.Request, bodyRequest []byte, query string) (**response.ResponseAPI, **response.ResponseAPIArray) {
+type RequestToAPIClient struct {
+	Host string
+	Port string
+}
+
+func (request *RequestToAPIClient) RequestToAPI(cacheClient cache.CacheClient, r *http.Request, bodyRequest []byte, query string) (**response.ResponseAPI, **response.ResponseAPIArray) {
 	client := http.Client{}
 	var bodyContent io.Reader
 
@@ -24,7 +29,7 @@ func RequestToAPI(cacheClient cache.CacheClient, r *http.Request, bodyRequest []
 		bodyContent = bytes.NewBuffer(bodyRequest)
 	}
 
-	req, err := http.NewRequest(r.Method, "http://localhost:4567"+r.URL.Path+query, bodyContent)
+	req, err := http.NewRequest(r.Method, request.Host+":"+request.Port+r.URL.Path+query, bodyContent)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -57,17 +62,25 @@ func RequestToAPI(cacheClient cache.CacheClient, r *http.Request, bodyRequest []
 		}
 
 		if req.Method == "GET" && resp.StatusCode >= 200 && resp.StatusCode <= 299 {
-			if err := handler.HandlerInsertCacheArray(cacheClient, req, query, responseForProxy); err != nil {
-				log.Fatal(err)
-			}
+
+			go func() {
+				if err := handler.InsertCacheArray(cacheClient, req, query, responseForProxy); err != nil {
+					log.Fatal(err)
+				}
+			}()
+
 		}
 		return nil, &responseForProxy
 	}
 
 	if req.Method == "GET" && resp.StatusCode >= 200 && resp.StatusCode <= 299 {
-		if err := handler.HandlerInsertCache(cacheClient, req, query, responseForProxy); err != nil {
-			log.Fatal(err)
-		}
+
+		go func() {
+			if err := handler.InsertCache(cacheClient, req, query, responseForProxy); err != nil {
+				log.Fatal(err)
+			}
+		}()
+
 	}
 
 	return &responseForProxy, nil

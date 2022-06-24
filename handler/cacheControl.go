@@ -7,7 +7,7 @@ import (
 	"proxy_project/proxyAPI/response"
 )
 
-func HandlerInsertCache(client cache.CacheClient, req *http.Request, query string, responseApi *response.ResponseAPI) error {
+func InsertCache(client cache.CacheClient, req *http.Request, query string, responseApi *response.ResponseAPI) error {
 	reqID := req.Method + "-" + req.URL.Path + query + "-" + req.Header.Get("Token")
 
 	respJson, err := json.Marshal(responseApi)
@@ -23,7 +23,7 @@ func HandlerInsertCache(client cache.CacheClient, req *http.Request, query strin
 	return nil
 }
 
-func HandlerInsertCacheArray(client cache.CacheClient, req *http.Request, query string, responseApi *response.ResponseAPIArray) error {
+func InsertCacheArray(client cache.CacheClient, req *http.Request, query string, responseApi *response.ResponseAPIArray) error {
 	reqID := req.Method + "-" + req.URL.Path + query + "-" + req.Header.Get("Token")
 
 	respJson, err := json.Marshal(responseApi)
@@ -39,7 +39,7 @@ func HandlerInsertCacheArray(client cache.CacheClient, req *http.Request, query 
 	return nil
 }
 
-func HandlerFindInCache(client cache.CacheClient, req *http.Request, query string) (*response.ResponseAPI, error) {
+func FindInCache(client cache.CacheClient, req *http.Request, query string) (*response.ResponseAPI, error) {
 	reqID := req.Method + "-" + req.URL.Path + query + "-" + req.Header.Get("Token")
 
 	val, err := client.FindInDatabase(reqID)
@@ -60,7 +60,7 @@ func HandlerFindInCache(client cache.CacheClient, req *http.Request, query strin
 	return &responseCache, nil
 }
 
-func HandlerFindInCacheArray(client cache.CacheClient, req *http.Request, query string) (*response.ResponseAPIArray, error) {
+func FindInCacheArray(client cache.CacheClient, req *http.Request, query string) (*response.ResponseAPIArray, error) {
 	reqID := req.Method + "-" + req.URL.Path + query + "-" + req.Header.Get("Token")
 
 	val, err := client.FindInDatabase(reqID)
