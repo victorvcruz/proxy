@@ -8,14 +8,17 @@ import (
 )
 
 type RedisClient struct {
-	client *redis.Client
+	Host     string
+	Port     string
+	Password string
+	client   *redis.Client
 }
 
 func (r *RedisClient) ConnectToDatabase() error {
 
 	r.client = redis.NewClient(&redis.Options{
-		Addr:     "localhost:6379",
-		Password: "redis",
+		Addr:     r.Host + ":" + r.Port,
+		Password: r.Password,
 		DB:       0,
 	})
 
