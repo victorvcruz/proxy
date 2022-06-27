@@ -1,4 +1,4 @@
-package proxyAPI
+package proxy
 
 import (
 	"bytes"
@@ -7,13 +7,18 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"proxy_project/api"
 	"proxy_project/cache"
 	"proxy_project/handler"
-	"proxy_project/proxyAPI/requestAPI"
 	"strings"
 )
 
-func ProxyAPI(cacheClient cache.CacheClient, request requestAPI.RequestClient) {
+type ProxyAPI struct {
+	cache.CacheClient
+	api.RequestClient
+}
+
+func (p *ProxyAPI) Run() error {
 
 	var mutex handler.QueueMutex
 
@@ -33,14 +38,14 @@ func ProxyAPI(cacheClient cache.CacheClient, request requestAPI.RequestClient) {
 		defer unlock()
 
 		if r.Method == "GET" {
-			responseCache, err := handler.FindInCache(cacheClient, r, queryParms)
+			responseCache, err := handler.FindInCache(p.CacheClient, r, queryParms)
 
 			switch e := err.(type) {
 			case *cache.CacheNotFoundError:
 				log.Println(e)
 
 			case *json.UnmarshalTypeError:
-				responseCache, err := handler.FindInCacheArray(cacheClient, r, queryParms)
+				responseCache, err := handler.FindInCacheArray(p.CacheClient, r, queryParms)
 				log.Println("Array cache")
 
 				switch e := err.(type) {
@@ -67,7 +72,7 @@ func ProxyAPI(cacheClient cache.CacheClient, request requestAPI.RequestClient) {
 
 		log.Println("Requisition")
 
-		response, responseArray := request.RequestToAPI(cacheClient, r, body, queryParms)
+		response, responseArray := p.RequestClient.RequestAPI(p.CacheClient, r, body, queryParms)
 
 		if response != nil {
 			if err := (*response).ResponseWriter(w); err != nil {
@@ -82,7 +87,11 @@ func ProxyAPI(cacheClient cache.CacheClient, request requestAPI.RequestClient) {
 		return
 	})
 
-	log.Fatal(http.ListenAndServe(":8080", nil))
+	if err := http.ListenAndServe(":8080", nil); err != nil {
+		return err
+	}
+
+	return nil
 
 }
 
