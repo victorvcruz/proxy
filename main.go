@@ -1,13 +1,12 @@
 package main
 
 import (
-	"fmt"
 	"github.com/joho/godotenv"
 	"log"
 	"os"
+	"proxy_project/api"
 	"proxy_project/cache/redis"
-	"proxy_project/proxyAPI"
-	"proxy_project/proxyAPI/requestAPI"
+	"proxy_project/proxy"
 )
 
 func main() {
@@ -22,7 +21,7 @@ func main() {
 		Password: os.Getenv("REDIS_PASSWORD"),
 	}
 
-	requestCLient := requestAPI.RequestToAPIClient{
+	requestClient := api.RequestClient{
 		Host: os.Getenv("API_HOST"),
 		Port: os.Getenv("API_PORT"),
 	}
@@ -32,7 +31,12 @@ func main() {
 		log.Fatal(err)
 	}
 
-	proxyAPI.ProxyAPI(&redisClient, &requestCLient)
-}
+	proxyAPI := proxy.ProxyAPI{
+		CacheClient:   &redisClient,
+		RequestClient: requestClient,
+	}
 
-func aaa() { fmt.Println("seila") }
+	if err := proxyAPI.Run(); err != nil {
+		log.Fatal(err)
+	}
+}

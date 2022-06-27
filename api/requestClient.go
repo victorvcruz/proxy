@@ -1,4 +1,4 @@
-package requestAPI
+package api
 
 import (
 	"bytes"
@@ -7,19 +7,19 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+	"proxy_project/api/response"
 	"proxy_project/cache"
 	"proxy_project/handler"
-	"proxy_project/proxyAPI/response"
 	"strings"
 	"time"
 )
 
-type RequestToAPIClient struct {
+type RequestClient struct {
 	Host string
 	Port string
 }
 
-func (request *RequestToAPIClient) RequestToAPI(cacheClient cache.CacheClient, r *http.Request, bodyRequest []byte, query string) (**response.ResponseAPI, **response.ResponseAPIArray) {
+func (request *RequestClient) RequestAPI(cacheClient cache.CacheClient, r *http.Request, bodyRequest []byte, query string) (**response.ResponseAPI, **response.ResponseAPIArray) {
 	client := http.Client{}
 	var bodyContent io.Reader
 

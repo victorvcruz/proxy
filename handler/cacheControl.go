@@ -3,8 +3,8 @@ package handler
 import (
 	"encoding/json"
 	"net/http"
+	"proxy_project/api/response"
 	"proxy_project/cache"
-	"proxy_project/proxyAPI/response"
 )
 
 func InsertCache(client cache.CacheClient, req *http.Request, query string, responseApi *response.ResponseAPI) error {
