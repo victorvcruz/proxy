@@ -19,7 +19,7 @@ type RequestClient struct {
 	Port string
 }
 
-func (request *RequestClient) RequestAPI(cacheClient cache.CacheClient, r *http.Request, bodyRequest []byte, query string) (**response.ResponseAPI, **response.ResponseAPIArray) {
+func (request *RequestClient) RequestAPI(cacheClient cache.CacheClient, r *http.Request, bodyRequest []byte, query string) (*response.ResponseAPI, *response.ResponseAPIArray) {
 	client := http.Client{}
 	var bodyContent io.Reader
 
@@ -70,7 +70,7 @@ func (request *RequestClient) RequestAPI(cacheClient cache.CacheClient, r *http.
 			}()
 
 		}
-		return nil, &responseForProxy
+		return nil, responseForProxy
 	}
 
 	if req.Method == "GET" && resp.StatusCode >= 200 && resp.StatusCode <= 299 {
@@ -83,7 +83,7 @@ func (request *RequestClient) RequestAPI(cacheClient cache.CacheClient, r *http.
 
 	}
 
-	return &responseForProxy, nil
+	return responseForProxy, nil
 }
 
 func CreateResponseForProxy(resp *http.Response, bodyResponse []byte) (*response.ResponseAPI, error) {
