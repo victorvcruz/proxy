@@ -2,6 +2,12 @@
 
 To run project you need Golang, [Docker](https://docs.docker.com/engine/install/) and [Docker-compose](https://docs.docker.com/compose/install/),  installed in your pc
 
+## Architecture
+<p align="center">
+  <img src="docs/images/proxy.jpg" height="440">
+</p>
+
+
 ## How to run project
 
 1. run `sudo docker-compose up -d` in root directory
